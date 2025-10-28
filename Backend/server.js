@@ -1,17 +1,29 @@
-require('dotenv').config();
+require('dotenv').config({path : './Config/.env'});
 const express = require('express');
 const cors = require('cors');
 const authRoutes = require('./Routes/authRoutes');
-const userRoutes = require('./Routes/userRoutes');
+const operationRoutes = require('./Routes/operationRoutes');
 
 const app = express();
 
-app.use(cors());
+
+app.use(cors({
+    origin: 'http://localhost:5173', 
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 app.use(express.json());
 
-// Hado li rahom fi folder Routes 
+// Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/users', userRoutes);
+app.use('/api/opr', operationRoutes);
+
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+    res.json({ status: 'Server is running!' });
+});
 
 app.use((err, req, res, next) => {
   console.error(err.stack);

@@ -1,4 +1,4 @@
-const { poolPromise, sql } = require('../Config/db');
+const { poolPromise, sql } = require('../Config/dbSqlServer');
 
 module.exports = {
   authenticate: async (req, res, next) => {

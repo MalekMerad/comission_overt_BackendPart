@@ -4,12 +4,11 @@ module.exports = {
     addOperationSQLServer: async (
         NumOperation, ServContract, Objectif,
         TravalieType, BudgetType, MethodAttribuation,
-        VisaNum, DateVisa
+        VisaNum, DateVisa,adminID
     ) => {
         try {
             const pool = await poolPromise;
             
-            // Convert string values to TinyInt codes
             const typeBudgetCode = (() => {
                 switch (BudgetType) {
                     case 'Equipement': return 1;
@@ -45,15 +44,16 @@ module.exports = {
             });
 
             const result = await pool.request()
-                .input('aNumero', sql.VarChar(50), NumOperation)
-                .input('aService_contractant', sql.VarChar(200), ServContract)
-                .input('aTypeBudget', sql.TinyInt, typeBudgetCode)
-                .input('aModeAttribuation', sql.TinyInt, modeAttribuationCode)
-                .input('aObjet', sql.VarChar(500), Objectif)
-                .input('aTypeTravaux', sql.TinyInt, typeTravauxCode)
-                .input('aNumeroVisa', sql.VarChar(50), VisaNum)
-                .input('aDateVisa', sql.Date, DateVisa)
-                .execute('insertNewOperation');
+            .input('aNumero', sql.VarChar(50), NumOperation)
+            .input('aService_contractant', sql.VarChar(200), ServContract)
+            .input('aTypeBudget', sql.TinyInt, typeBudgetCode)
+            .input('aModeAttribuation', sql.TinyInt, modeAttribuationCode)
+            .input('aObjet', sql.VarChar(500), Objectif)
+            .input('aTypeTravaux', sql.TinyInt, typeTravauxCode)
+            .input('aNumeroVisa', sql.VarChar(50), VisaNum)
+            .input('aDateVisa', sql.Date, DateVisa)
+            .input('adminID', sql.UniqueIdentifier, adminID)
+            .execute('insertNewOperation');
 
             const operationResult = result.returnValue;
             
@@ -67,6 +67,62 @@ module.exports = {
         } catch (error) {
             console.log("(Operation services error ): ", error);
             return { success: false, code: 5000, message: 'General error occurred.', error: error.message };
+        }
+    },
+    getAllOperationSQLServer: async (adminID) => {
+        try {
+            const pool = await poolPromise;
+            
+            // For functions with parameters, include them directly in the query
+            const result = await pool.request()
+                .query(`SELECT * FROM dbo.GetAllOperations('${adminID}')`);
+            
+            const operations = result.recordset;
+            return {
+                success: true,
+                data: operations,
+                count: operations.length
+            };
+        } catch (error) {
+            console.error('Error in getAllOperationSQLServer:', error);
+            return {
+                success: false,
+                message: error.message,
+                data: []
+            };
+        }
+    },
+    deleteOperationByIdSqlServer: async (aId_Operation) => {
+        try {
+            const pool = await poolPromise;
+            const result = await pool.request()
+                .input('aId_Operation', sql.UniqueIdentifier, aId_Operation)
+                .execute('dbo.deleteOperation');
+    
+            const deleteResult = result.returnValue;
+    
+            if (deleteResult === 0) {
+                return {
+                    success: true,
+                    message: "Operation deleted successfully"
+                };
+            } else if (deleteResult === 1005) {
+                return {
+                    success: false,
+                    message: "Operation not found"
+                };
+            } else {
+                return {
+                    success: false,
+                    message: "An error occurred while deleting Operation"
+                };
+            }
+        } catch (error) {
+            console.log("Delete Operation Service error:", error);
+            return {
+                success: false,
+                message: "Database error occurred"
+            };
         }
     }
 };

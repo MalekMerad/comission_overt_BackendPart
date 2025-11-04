@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const authRoutes = require('./Routes/authRoutes');
 const operationRoutes = require('./Routes/operationRoutes');
+const lotRoutes = require('./Routes/lotRoutes');
 
 const app = express();
 
@@ -19,6 +20,7 @@ app.use(express.json());
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/opr', operationRoutes);
+app.use('/api/lot', lotRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

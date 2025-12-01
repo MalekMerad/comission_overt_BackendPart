@@ -10,11 +10,11 @@ Runtime: Node.js
 
 Framework: Express.js
 
-Database: Microsoft SQL Server (MSSQL)
+Database: Microsoft SQL Server (MSSQL), MySQL
 
 Authentication: JWT (JSON Web Tokens)
 
-Security: CORS, dotenv
+Security: CORS, dotenv, Tokens, Sessions
 
 Dev Tools: Nodemon (Auto-reload)
 
@@ -31,13 +31,7 @@ npm install
 
 [YouTube Tutorial](https://www.youtube.com/watch?v=YuhKhkQqtP8)
 
-DB_USER=your_db_username
-DB_PASSWORD=your_db_password
-DB_SERVER=your_server_name
-DB_NAME=your_database_name
-JWT_SECRET=your_jwt_secret_key
-PORT=5000
-
 5. Run the Server
 ```bash
 nodemon server.js
+

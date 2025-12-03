@@ -8,6 +8,7 @@ const authRoutes = require('./Routes/sql/authRoutes');
 const operationRoutes = require('./Routes/sql/operationRoutes');
 const annonceRoutes = require('./Routes/sql/annonceRoutes');
 const lotRoutes = require('./Routes/sql/LotRoutes');
+const supplierRoutes = require('./Routes/sql/supplierRoutes');
 
 const app = express();
 
@@ -25,6 +26,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/opr', authMiddleware, operationRoutes);
 app.use('/api/ann', authMiddleware, annonceRoutes);
 app.use('/api/lot', authMiddleware, lotRoutes);
+app.use('/api/supplier', authMiddleware, supplierRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

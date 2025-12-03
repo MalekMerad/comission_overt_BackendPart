@@ -7,6 +7,7 @@ const authRoutes = require('./Routes/sqlServer/authRoutes');
 const operationRoutes = require('./Routes/sqlServer/operationRoutes');
 const annonceRoutes = require('./Routes/sqlServer/annonceRoutes');
 const lotRoutes = require('./Routes/sqlServer/LotRoutes');
+const supplierRoutes = require('./Routes/sqlServer/supplierRoutes');
 
 const app = express();
 
@@ -24,6 +25,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/opr', operationRoutes);
 app.use('/api/ann', annonceRoutes);
 app.use('/api/lot', lotRoutes);
+app.use('/api/supplier', supplierRoutes);
 
 app.get('/api/health', (req, res) => {
     res.json({ status: 'SQL Server is running!' });

@@ -127,6 +127,7 @@ module.exports = {
         Journal,
         Date_Overture,
         Date_Publication,
+        Heure_Ouverture,
       } = req.body || {};
 
       if (!Numero && !Id) {
@@ -143,6 +144,7 @@ module.exports = {
         Journal,
         Date_Overture,
         Date_Publication,
+        Heure_Ouverture
       });
 
       if (result.success) {

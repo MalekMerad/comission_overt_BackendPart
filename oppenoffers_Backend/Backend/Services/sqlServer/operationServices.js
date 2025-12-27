@@ -69,6 +69,7 @@ addOperationSQLServer: async (
             return { success: false, code: 5000, message: 'General error occurred.', error: error.message };
         }
     },
+    
     getAllOperationSQLServer: async (adminID) => {
         try {
             const pool = await poolPromise;
@@ -91,6 +92,7 @@ addOperationSQLServer: async (
             };
         }
     },
+
     deleteOperationByIdSqlServer: async (Num_Operation) => {
         try {
             console.log('Service delete operation recieved Number :', Num_Operation)

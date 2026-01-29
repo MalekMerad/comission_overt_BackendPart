@@ -22,16 +22,26 @@ module.exports = {
     getSuppliersWithOperationsSQL: async (adminId) => {
         try {
             const [rows] = await db.query(
-                'CALL GetSuppliersWithOperations(?)',
-                [adminId]
+            "SELECT getSuppliersWithOperations(?) AS data",
+            [adminId]
             );
 
-            return { code: 0, data: rows[0] };
+            const data = rows[0]?.data ? JSON.parse(rows[0].data) : [];
+
+            return {
+            code: 0,
+            data: data
+            };
+
         } catch (error) {
             console.error('Service error (getSuppliersWithOperationsSQL):', error);
-            return { code: 5000, message: error.message };
+            return {
+            code: 5000,
+            message: error.message
+            };
         }
     },
+
 
     deleteRetraitSQL: async (SupplierID, OperationID) => {
         try {

@@ -48,33 +48,34 @@ module.exports = {
 
 
   getAllAnnoncesSQL: async (adminID) => {
-    try {
-      const [rows] = await db.query("CALL getAllAnnoncesSQL(?)", [adminID]);
+  try {
+    const [rows] = await db.query("SELECT getAllAnnoncesSQL(?) AS data", [adminID]);
 
-      const annonces = rows[0] || [];
+    const annonces = rows[0]?.data ? JSON.parse(rows[0].data) : [];
 
-       const formatted = annonces.map(a => ({
-          ...a,
-          Heure_Ouverture: a.Heure_Ouverture
-            ? a.Heure_Ouverture.substring(0, 5) // "HH:mm"
-            : null
-        }));
+    const formatted = annonces.map(a => ({
+      ...a,
+      Heure_Ouverture: a.Heure_Ouverture
+        ? a.Heure_Ouverture.substring(0, 5)
+        : null
+    }));
 
-      return {
-        success: true,
-        data: formatted,
-        count: formatted.length,
-      };
-    } catch (error) {
-      console.error("Annonce service error (getAllAnnoncesSQL):", error);
-      return {
-        success: false,
-        data: [],
-        count: 0,
-        message: error.message,
-      };
-    }
-  },
+    return {
+      success: true,
+      data: formatted,
+      count: formatted.length,
+    };
+  } catch (error) {
+    console.error("Annonce service error (getAllAnnoncesSQL):", error);
+    return {
+      success: false,
+      data: [],
+      count: 0,
+      message: error.message,
+    };
+  }
+},
+
 
     deleteAnnonceSQL: async (id) => {
         try {

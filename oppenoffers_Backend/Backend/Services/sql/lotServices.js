@@ -36,28 +36,29 @@ module.exports = {
 
   getAllLotsSQL: async (adminID) => {
     try {
-        const connection = await db.getConnection();
+      const connection = await db.getConnection();
 
-        const [rows] = await connection.query(
-            "CALL getAllLotsSQL(?)",
-            [adminID]
-        );
+      const [rows] = await connection.query(
+        "SELECT getAllLotsSQL(?) AS data",
+        [adminID]
+      );
 
-        connection.release();
+      connection.release();
 
-        const data = rows[0]; 
+      const data = rows[0]?.data ? JSON.parse(rows[0].data) : [];
 
-        return {
-            success: true,
-            data: data,
-            count: data.length
-        };
+      return {
+        success: true,
+        data: data,
+        count: data.length
+      };
 
     } catch (error) {
-        console.error('MySQL error in getAllLotsSQL:', error);
-        return { success: false, data: [] };
+      console.error('MySQL error in getAllLotsSQL:', error);
+      return { success: false, data: [] };
     }
   },
+
 
 
   updateLotSQL: async (data) => {

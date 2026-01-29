@@ -60,25 +60,31 @@ module.exports = {
         }
     },
 
-    getAllOperationsSQL: async (adminID) => { 
+    getAllOperationsSQL: async (adminID) => {
         try {
-            const [rows] = await db.query(`CALL getAllOPERATIONSSQL(?)`, [adminID]);
-            
-            const operations = rows[0];
+            const [rows] = await db.query(
+            "SELECT getAllOPERATIONSSQL(?) AS data",
+            [adminID]
+            );
+
+            const operations = rows[0]?.data ? JSON.parse(rows[0].data) : [];
+
             return {
-                success: true,
-                data: operations,
-                count: operations.length
+            success: true,
+            data: operations,
+            count: operations.length
             };
+
         } catch (error) {
             console.error('Error in getAllOperationsSQL:', error);
             return {
-                success: false,
-                message: error.message,
-                data: []
+            success: false,
+            message: error.message,
+            data: []
             };
         }
     },
+
 
     deleteOperationSQL: async (NumOperation) => {
         try {

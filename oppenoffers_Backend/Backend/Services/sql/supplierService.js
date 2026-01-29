@@ -77,20 +77,29 @@ module.exports = {
 
     getAllSuppliersSQL: async (adminID) => {
         try {
-            const [rows] = await db.query(`CALL getAllSuppliers(?)`, adminID);
+            const [rows] = await db.query(
+            "SELECT getAllSuppliers(?) AS data",
+            [adminID]
+            );
+
+            const suppliers = rows[0]?.data ? JSON.parse(rows[0].data) : [];
 
             return {
-                success: true,
-                data: rows[0]
+            success: true,
+            data: suppliers,
+            count: suppliers.length
             };
+
         } catch (error) {
             console.error('Service error (getAllSuppliersSQL):', error);
             return {
-                success: false,
-                data: []
+            success: false,
+            data: [],
+            message: error.message
             };
         }
     },
+
 
 
     deleteSupplierSQL: async (id) => {

@@ -133,6 +133,7 @@ module.exports = {
                 .request()
                 .input('adminID', sql.UniqueIdentifier, adminID)
                 .query("SELECT * FROM selectAllFournisseurs(@adminID)");
+            console.log('result.recordset :', result.recordset)
             return { success: true, data: result.recordset };
         } catch (error) {
             console.error("Service error (selectAllFournisseurs):", error);

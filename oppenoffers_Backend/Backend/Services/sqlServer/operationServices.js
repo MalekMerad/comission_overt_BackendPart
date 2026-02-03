@@ -144,7 +144,7 @@ addOperationSQLServer: async (
             const pool = await poolPromise;
             const result = await pool
                 .request()
-                .input('id', sql.UniqueIdentifier, id)
+                .input('op', sql.UniqueIdentifier, op)
                 .execute('manageActivateOperation');
 
             const code = result.returnValue;
@@ -175,6 +175,34 @@ addOperationSQLServer: async (
                 success: false,
                 code: 5000,
                 message: "Database error occurred in manageArchiveOperation.",
+                error: error.message
+            };
+        }
+    },
+            // result.recordsets[0] => LOTS
+            // result.recordsets[1] => ANNOUNCES
+            // result.recordsets[2] => retrait_cahier_charges (SupplierIDs)
+            // result.recordsets[3] => FOURNISSEURS details (joined)
+    getOperationByIdSqlServer: async (operationId) => {
+        try {
+            const pool = await poolPromise;
+            const result = await pool.request()
+                .input('op', sql.UniqueIdentifier, operationId)
+                .execute('GetOperationById');
+            console.log('from getOperationByIdSqlServer ',result);
+            return {
+                success: true,
+                lots: result.recordsets[0] || [],
+                announces: result.recordsets[1] || [],
+                retraitCahierChargesSupplierIDs: result.recordsets[2] || [],
+                suppliers: result.recordsets[3] || [],
+                message: "Data retrieved successfully"
+            };
+        } catch (error) {
+            console.error("Operation service error (getOperationByIdSqlServer):", error);
+            return {
+                success: false,
+                message: "Database error occurred in getOperationByIdSqlServer.",
                 error: error.message
             };
         }

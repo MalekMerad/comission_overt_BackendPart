@@ -6,6 +6,7 @@ router.post('/addOperation', operationsController.insertOperation);
 router.get('/AllOperations', operationsController.getAllOperations);
 router.delete('/deleteOperation/:NumOperation', operationsController.deleteOperation);
 router.patch('/manageArchiveOperation/:id', operationsController.manageArchiveOperation);
+router.get('/operationById/:op', operationsController.getOperationById);
 
 
 module.exports = router;

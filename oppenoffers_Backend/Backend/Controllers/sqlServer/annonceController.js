@@ -46,6 +46,7 @@ module.exports = {
     try {
       const { adminID, operationID } = req.query;
 
+      console.log('getAllAnnonces recieved :', adminID, operationID);
       if (!adminID) {
         return res.status(400).json({
           success: false,

@@ -188,4 +188,36 @@ module.exports = {
             });
         }
     },
+
+    getOperationById: async (req, res) => {
+        try {
+            const { op } = req.params;
+
+            if (!op) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Operation id is required"
+                });
+            }
+
+            const result = await operationService.getOperationByIdSqlServer(op);
+
+            if (result.success) {
+                res.status(200).json(result);
+            } else {
+                res.status(400).json({
+                    success: false,
+                    message: result.message || "Failed to retrieve operation details.",
+                    error: result.error
+                });
+            }
+        } catch (error) {
+            console.error("Controller error in getOperationById:", error);
+            res.status(500).json({
+                success: false,
+                message: "Internal server error",
+                error: error.message
+            });
+        }
+    },
 }

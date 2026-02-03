@@ -49,18 +49,19 @@ insertLot: async (req, res) => {
         });
     }
 },
-getAllLots : async(req,res)=>{
+getAllLots: async (req, res) => {
     try {
-        const { adminID } = req.query;
+        const { adminID, operationID } = req.query;
 
-        if (!adminID) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'adminID is required',
-                    data: []
-                });
-            }
-        const result = await lotService.getAllLotsSqlServer(adminID);
+        if (!adminID || !operationID) {
+            return res.status(400).json({
+                success: false,
+                message: 'adminID and operationID are required',
+                data: []
+            });
+        }
+
+        const result = await lotService.getAllLotsSqlServer(adminID, operationID);
         if (result.success) {
             res.status(200).json({
                 success: true,
@@ -76,7 +77,7 @@ getAllLots : async(req,res)=>{
             });
         }
     } catch (error) {
-        console.error('Controller error in getAllLotSqlServer:', error);
+        console.error('Controller error in getAllLots:', error);
         res.status(500).json({
             success: false,
             message: 'Internal server error',

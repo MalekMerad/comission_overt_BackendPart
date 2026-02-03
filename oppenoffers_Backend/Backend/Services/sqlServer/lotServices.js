@@ -27,14 +27,16 @@ addNewLotSqlServer : async(
         return { success: false, code: 5000, message: 'General error occurred.', error: error.message };
     }
 },
-    getAllLotsSqlServer: async(adminID) => {
+
+getAllLotsSqlServer: async (adminID, operationID) => {
     try {
         const pool = await poolPromise;
         const result = await pool.request()
             .input('adminID', sql.UniqueIdentifier, adminID)
-            .query(`SELECT * FROM dbo.getAllLots(@adminID)`);
+            .input('operationID', sql.UniqueIdentifier, operationID)
+            .query(`SELECT * FROM dbo.getAllLots(@adminID, @operationID)`);
 
-        const lots = result.recordset; 
+        const lots = result.recordset;
         return {
             success: true,
             data: lots,
@@ -44,7 +46,7 @@ addNewLotSqlServer : async(
         console.log('Get lots service error: ', error);
         return {
             success: false,
-            data: error.message, 
+            data: error.message,
             count: 0
         }
     }

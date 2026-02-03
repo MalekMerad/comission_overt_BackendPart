@@ -1,3 +1,4 @@
+const { MAX } = require('mssql');
 const {poolPromise, sql } = require('../../Config/dbSqlServer');
 
 module.exports = {
@@ -48,7 +49,7 @@ addOperationSQLServer: async (
             .input('aService_contractant', sql.VarChar(200), ServContract)
             .input('aTypeBudget', sql.TinyInt, typeBudgetCode)
             .input('aModeAttribuation', sql.TinyInt, modeAttribuationCode)
-            .input('aObjet', sql.VarChar(500), Objectif)
+            .input('aObjet', sql.VarChar(MAX), Objectif)
             .input('aTypeTravaux', sql.TinyInt, typeTravauxCode)
             .input('aNumeroVisa', sql.VarChar(50), VisaNum)
             .input('aDateVisa', sql.Date, DateVisa)

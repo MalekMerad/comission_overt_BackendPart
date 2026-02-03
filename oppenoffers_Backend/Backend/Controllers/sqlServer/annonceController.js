@@ -44,7 +44,7 @@ module.exports = {
   },
   getAllAnnonces: async (req, res) => {
     try {
-      const { adminID } = req.query;
+      const { adminID, operationID } = req.query;
 
       if (!adminID) {
         return res.status(400).json({
@@ -54,7 +54,15 @@ module.exports = {
         });
       }
 
-      const result = await annonceService.getAllAnnoncesSqlServer(adminID);
+      if (!operationID) {
+        return res.status(400).json({
+          success: false,
+          message: "operationID is required",
+          annonces: [],
+        });
+      }
+
+      const result = await annonceService.getAllAnnoncesSqlServer(adminID, operationID);
 
       if (result.success) {
         return res.status(200).json({

@@ -86,13 +86,16 @@ addAnnonceSqlServer: async (data) => {
   }
 },
     
-getAllAnnoncesSqlServer: async (adminID) => {
+getAllAnnoncesSqlServer: async (adminID, operationID) => {
+  console.log('getAllAnnoncesSqlServer Recieved: ',adminID,"\n",operationID);
+  
   try {
     const pool = await poolPromise; 
     const result = await pool
       .request()
-      .input("adminID", sql.UniqueIdentifier, adminID)
-      .query("SELECT * FROM dbo.GetAllAnnonce(@adminID)"); 
+      .input('adminID', sql.UniqueIdentifier, adminID)
+      .input('operationID', sql.UniqueIdentifier, operationID)
+      .query(`SELECT * FROM dbo.GetAllAnnonce(@adminID, @operationID)`);
 
     const annonces = (result.recordset || []).map(ann => {
       // Helper to format SQL Time object to "HH:mm"
@@ -103,7 +106,6 @@ getAllAnnoncesSqlServer: async (adminID) => {
 
       return {
         ...ann,
-        // Ensure the ID and adminId are treated as strings to prevent index issues
         Id: ann.Id?.toString(),
         adminId: ann.adminId?.toString(),
         Heure_Ouverture: formattedTime

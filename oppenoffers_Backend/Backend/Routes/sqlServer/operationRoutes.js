@@ -7,6 +7,7 @@ router.get('/AllOperations', operationsController.getAllOperations);
 router.delete('/deleteOperation/:NumOperation', operationsController.deleteOperation);
 router.patch('/manageArchiveOperation/:id', operationsController.manageArchiveOperation);
 router.get('/operationById/:op', operationsController.getOperationById);
+router.put('/updateOperation', operationsController.updateOperation);
 
 
 module.exports = router;

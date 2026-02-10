@@ -203,11 +203,18 @@ module.exports = {
             const result = await operationService.getOperationByIdSqlServer(op);
 
             if (result.success) {
-                res.status(200).json(result);
+                res.status(200).json({
+                    success: true,
+                    operation: result.operation,
+                    lots: result.lots,
+                    announces: result.announces,
+                    suppliers: result.suppliers,
+                    message: result.message
+                });
             } else {
-                res.status(400).json({
+                res.status(500).json({
                     success: false,
-                    message: result.message || "Failed to retrieve operation details.",
+                    message: result.message || "Database error occurred in getOperationByIdSqlServer.",
                     error: result.error
                 });
             }
@@ -220,4 +227,78 @@ module.exports = {
             });
         }
     },
+
+    updateOperation: async (req, res) => {
+      try {
+          console.log('🔍 [Controller] Received update request:', {
+              body: req.body,
+              headers: req.headers
+          });
+          
+          const {
+              Id,
+              NumOperation,
+              ServContract,
+              Objectif,
+              TravalieType,
+              BudgetType,
+              MethodAttribuation,
+              VisaNum,
+              DateVisa,
+              adminID,
+          } = req.body || {};
+          
+          console.log('🔍 [Controller] Extracted values:', {
+              Id,
+              NumOperation,
+              adminID: adminID,
+              hasAdminID: !!adminID
+          });
+  
+          const result = await operationService.updateOperationSqlServer({
+              Id,
+              NumOperation,
+              ServContract,
+              Objectif,
+              TravalieType,
+              BudgetType,
+              MethodAttribuation,
+              VisaNum,
+              DateVisa,
+              adminID: adminID
+          });
+  
+          console.log('🔍 [Controller] Service result:', result);
+  
+          if (result.success) {
+              return res.status(200).json({
+                  success: true,
+                  code: result.code,
+                  message: result.message,
+                  id: result.id,
+              });
+          }
+  
+          const status =
+              result.code === 1005
+                  ? 404
+                  : result.code === 400
+                  ? 400
+                  : 500;
+  
+          return res.status(status).json({
+              success: false,
+              code: result.code,
+              message: result.message,
+              error: result.error,
+          });
+      } catch (error) {
+          console.error("❌ [Controller] Error in updateOperation:", error);
+          return res.status(500).json({
+              success: false,
+              message: "Internal server error",
+              error: error.message,
+          });
+      }
+  }
 }

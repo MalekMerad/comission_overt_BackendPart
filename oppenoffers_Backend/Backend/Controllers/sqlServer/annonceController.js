@@ -6,6 +6,8 @@ const { REQUIRED_FIELDS_CREATE } = require("../../Helper");
 module.exports = {
   insertAnnonce: async (req, res) => {
     try {
+      console.log('Recieved Data :',req.body); 
+      
       const missing = REQUIRED_FIELDS_CREATE.filter((field) => !req.body?.[field]);
 
       if (missing.length) {
@@ -129,6 +131,7 @@ module.exports = {
   },
   updateAnnonce: async (req, res) => {
     try {
+      console.log('Recieved Data :',req.body); 
       const {
         Numero,
         Id,
@@ -138,6 +141,8 @@ module.exports = {
         Date_Publication,
         Heure_Ouverture,
       } = req.body || {};
+
+     
 
       if (!Numero && !Id) {
         return res.status(400).json({
@@ -155,6 +160,8 @@ module.exports = {
         Date_Publication,
         Heure_Ouverture
       });
+
+     
 
       if (result.success) {
         return res.status(200).json({

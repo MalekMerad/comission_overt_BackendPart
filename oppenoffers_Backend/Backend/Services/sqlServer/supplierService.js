@@ -1,5 +1,32 @@
 const { poolPromise, sql } = require("../../Config/dbSqlServer");
+const {generateIDS} = require('../../Helper');
 
+const insertPotentialSupplier = async (
+    aId,
+    aNomPrenom,
+    aAdresse,
+    aTelephone,
+    aEmail,
+    aAdminID
+) => {
+    try {
+        const pool = await poolPromise;
+        await pool.request()
+            .input("Id", sql.UniqueIdentifier, aId)
+            .input("NomPrenom", sql.NVARCHAR(100), aNomPrenom)
+            .input("Adresse", sql.NVARCHAR(100), aAdresse)
+            .input("Telephone", sql.NVARCHAR(50), aTelephone)
+            .input("Email", sql.NVARCHAR(100), aEmail)
+            .input("Status", sql.Int, 1)
+            .input("adminId", sql.UniqueIdentifier, aAdminID)
+            .query(`INSERT INTO FOURNISSEURS 
+                (Id, NomPrenom, Adresse, Telephone, Email, Status, adminId)
+                VALUES (@Id, @NomPrenom, @Adresse, @Telephone, @Email, @Status, @adminId)`);
+    } catch (error) {
+        console.error("insertPotentialSupplier error:", error);
+        throw error;
+    }
+};
 module.exports = {
     addSupplierSQL: async (data) => {
         try {
@@ -94,7 +121,7 @@ module.exports = {
         }
     },
 
-    updateFournisseur: async (data) => {
+    updateFournisseur: async (data) => {9
         try {
             const {
                 Id,
@@ -140,6 +167,7 @@ module.exports = {
             return { success: false, data: [] };
         }
     },
+
     insertSelectedSupplier: async (data) => {
         try {
             const {
@@ -149,15 +177,8 @@ module.exports = {
                 Email,
                 adminID
             } = data;
-            const pool = await poolPromise;
-            await pool
-                .request()
-                .input("aNomPrenom", sql.NVARCHAR(100), NomPrenom)
-                .input("aAdresse", sql.NVARCHAR(50), Adresse)
-                .input("aTelephone", sql.NVARCHAR(50), Telephone)
-                .input("aEmail", sql.NVARCHAR(50), Email)
-                .input("adminID", sql.UniqueIdentifier, adminID)
-                .execute("insertSelectedSupplier");
+            const id = generateIDS();
+            insertPotentialSupplier(id ,NomPrenom, Adresse, Telephone, Email, adminID);
             return { success: true };
         } catch (error) {
             if (error && (error.number === 1004 || error.number === 1005)) {

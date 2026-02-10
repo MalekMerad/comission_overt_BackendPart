@@ -179,22 +179,19 @@ addOperationSQLServer: async (
             };
         }
     },
-            // result.recordsets[0] => LOTS
-            // result.recordsets[1] => ANNOUNCES
-            // result.recordsets[2] => retrait_cahier_charges (SupplierIDs)
-            // result.recordsets[3] => FOURNISSEURS details (joined)
+
     getOperationByIdSqlServer: async (operationId) => {
         try {
             const pool = await poolPromise;
             const result = await pool.request()
                 .input('op', sql.UniqueIdentifier, operationId)
                 .execute('GetOperationById');
-            console.log('from getOperationByIdSqlServer ',result);
+                
             return {
                 success: true,
-                lots: result.recordsets[0] || [],
-                announces: result.recordsets[1] || [],
-                retraitCahierChargesSupplierIDs: result.recordsets[2] || [],
+                operation: (result.recordsets[0] && result.recordsets[0][0]) || null,
+                lots: result.recordsets[1] || [],
+                announces: result.recordsets[2] || [],
                 suppliers: result.recordsets[3] || [],
                 message: "Data retrieved successfully"
             };
@@ -204,6 +201,166 @@ addOperationSQLServer: async (
                 success: false,
                 message: "Database error occurred in getOperationByIdSqlServer.",
                 error: error.message
+            };
+        }
+    },
+
+    updateOperationSqlServer: async (data) => {
+        console.log(' [Service] Data received for update:', {
+            ...data,
+            hasAdminID: !!data.adminID,
+            adminID: data.adminID || 'NOT PROVIDED'
+        });
+    
+        const {
+            Id,
+            NumOperation,
+            ServContract,
+            Objectif,
+            TravalieType,
+            BudgetType,
+            MethodAttribuation,
+            VisaNum,
+            DateVisa,
+            adminID 
+        } = data;
+    
+        try {
+            const pool = await poolPromise;
+            console.log(' [Service] Pool connection established');
+    
+            let operationId = Id;
+            
+            if (!operationId && NumOperation) {
+                console.log(' [Service] Looking for operation by NumOperation:', NumOperation);
+                const lookup = await pool
+                    .request()
+                    .input("NumOperation", sql.VarChar(50), NumOperation)
+                    .query("SELECT TOP 1 Id FROM dbo.OPERATIONS WHERE Numero = @NumOperation");
+                
+                if (lookup.recordset.length) {
+                    operationId = lookup.recordset[0].Id;
+                    console.log(' [Service] Found operationId:', operationId);
+                }
+            }
+    
+            if (!operationId) {
+                console.log(' [Service] Operation not found');
+                return {
+                    success: false,
+                    code: 1005,
+                    message: "Operation not found",
+                };
+            }
+    
+            console.log(' [Service] Operation ID to update:', operationId);
+            console.log(' [Service] Admin ID to use:', adminID);
+    
+            const typeBudgetCode = (() => {
+                switch (BudgetType) {
+                    case 'Equipement': return 1;
+                    case 'Fonctionnement': return 2;
+                    case 'Opérations Hors Budget': return 3;
+                    default: return null;
+                }
+            })();
+    
+            const modeAttribuationCode = (() => {
+                switch (MethodAttribuation) {
+                    case "Appel d'Offres Ouvert": return 1;
+                    case "Appel d'Offres Restreint": return 2;
+                    default: return null;
+                }
+            })();
+    
+            const typeTravauxCode = (() => {
+                switch (TravalieType) {
+                    case 'Travaux': return 1;
+                    case 'Prestations': return 2;
+                    case 'Equipement': return 3;
+                    case 'Etude': return 4;
+                    default: return null;
+                }
+            })();
+    
+            console.log(' [Service] Converted values:', {
+                typeBudgetCode,
+                modeAttribuationCode,
+                typeTravauxCode
+            });
+    
+            const request = pool.request();
+            
+            request.input("Id", sql.UniqueIdentifier, operationId);
+            request.input("aService_contractant", sql.VarChar(200), ServContract);
+            request.input("aTypeBudget", sql.TinyInt, typeBudgetCode);
+            request.input("aModeAttribuation", sql.TinyInt, modeAttribuationCode);
+            request.input("aObjet", sql.VarChar(sql.MAX), Objectif);
+            request.input("aTypeTravaux", sql.TinyInt, typeTravauxCode);
+            request.input("aNumeroVisa", sql.VarChar(50), VisaNum);
+            request.input("aDateVisa", sql.Date, DateVisa);
+            
+            if (!adminID) {
+                console.log(' [Service] adminID is null or undefined!');
+                return {
+                    success: false,
+                    code: 400,
+                    message: "adminID is required"
+                };
+            }
+            
+            request.input("adminID", sql.UniqueIdentifier, adminID);
+            
+            console.log(' [Service] Executing stored procedure...');
+            
+            const updateResult = await request.execute("dbo.updateOperation");
+    
+            const code = updateResult.returnValue;
+            console.log(' [Service] Stored procedure return value:', code);
+    
+            if (code === 0) {
+                console.log(' [Service] Update successful');
+                return {
+                    success: true,
+                    code: 0,
+                    message: "Operation updated successfully",
+                    id: operationId,
+                };
+            }
+    
+            if (code === 1005) {
+                console.log(' [Service] Operation not found (code 1005)');
+                return {
+                    success: false,
+                    code: 1005,
+                    message: "Operation not found",
+                };
+            }
+            
+            console.log(' [Service] Unknown error code:', code);
+            return {
+                success: false,
+                code: code || 5000,
+                message: "Failed to update operation",
+            };
+        } catch (error) {
+            console.error(" [Service] Error in updateOperationSqlServer:", error);
+            console.error(" [Service] Error details:", {
+                message: error.message,
+                code: error.code,
+                number: error.number,
+                state: error.state,
+                class: error.class,
+                serverName: error.serverName,
+                procName: error.procName,
+                lineNumber: error.lineNumber
+            });
+            
+            return {
+                success: false,
+                code: 5000,
+                message: "Database error occurred.",
+                error: error.message,
             };
         }
     },

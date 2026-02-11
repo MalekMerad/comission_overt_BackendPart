@@ -300,5 +300,39 @@ module.exports = {
               error: error.message,
           });
       }
-  }
+  },
+  validateOperation: async (req, res) => {
+        try {
+            const { operationId } = req.params;
+
+            if (!operationId) {
+                return res.status(400).json({
+                    success: false,
+                    message: "operationId parameter is required."
+                });
+            }
+
+            const result = await operationService.validateOperationSqlServer(operationId);
+
+            if (result.success) {
+                return res.status(200).json({
+                    success: true,
+                    message: result.message
+                });
+            } else {
+                return res.status(400).json({
+                    success: false,
+                    message: result.message,
+                    error: result.error || undefined
+                });
+            }
+        } catch (error) {
+            console.error("❌ [Controller] Error in validateOperation:", error);
+            return res.status(500).json({
+                success: false,
+                message: "Internal server error",
+                error: error.message
+            });
+        }
+    },
 }

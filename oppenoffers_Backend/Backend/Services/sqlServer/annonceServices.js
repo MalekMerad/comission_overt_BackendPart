@@ -3,23 +3,39 @@ const { v4: uuidv4 } = require("uuid");
 
 
 const toDateOrNull = (value) => {
-    if (!value) return null;
-    const parsed = new Date(value);
-    return Number.isNaN(parsed.getTime()) ? null : parsed;
-  };
+  if (!value) return null;
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return null;
+  // Return only the date part: YYYY-MM-DD
+  return parsed.toISOString().split('T')[0];
+};
+
 const toTimeOrNull = (value) => {
-    if (!value) return null;
-    const [hours, minutes] = value.split(':');
-    if (hours === undefined || minutes === undefined) {
-      return null;
-    }
-    const date = new Date();
-    date.setHours(parseInt(hours, 10));
-    date.setMinutes(parseInt(minutes, 10));
-    date.setSeconds(0);
-    date.setMilliseconds(0);
-    return date;
-  };
+  if (!value) return null;
+  // If the value is already a string like "22:18", 
+  // just ensure it has seconds for SQL compatibility
+  const parts = value.split(':');
+  if (parts.length < 2) return null;
+  
+  const hours = parts[0].padStart(2, '0');
+  const minutes = parts[1].padStart(2, '0');
+  const seconds = parts[2] ? parts[2].padStart(2, '0') : '00';
+  
+  return `${hours}:${minutes}:${seconds}`;
+};
+
+const validateAnnounce = async (AnnounceId) => {
+  try {
+      const pool = await poolPromise;
+      await pool.request()
+          .input('AnnounceId', sql.UniqueIdentifier, AnnounceId)
+          .query('UPDATE ANNOUNCES SET Status = 1 WHERE Id = @AnnounceId');
+      return { success: true };
+  } catch (error) {
+      console.error('Error in validateAnnounce:', error);
+      return { success: false, error: error.message };
+  }
+};
 
 module.exports = {
 
@@ -47,7 +63,7 @@ addAnnonceSqlServer: async (data) => {
       .input("aDate_Publication", sql.Date, toDateOrNull(Date_Publication))
       .input("aJournal", sql.NVarChar(255), Journal)
       .input("aDelai", sql.Int, Number.isFinite(+Delai) ? parseInt(Delai, 10) : null)
-      .input("aHeure_Ouverture", sql.Time(7), toTimeOrNull(Heure_Ouverture))
+      .input("aHeure_Ouverture", sql.VarChar, toTimeOrNull(Heure_Ouverture)) 
       .input("aDate_Overture", sql.DateTime, toDateOrNull(Date_Overture))
       .input("adminId", sql.UniqueIdentifier, adminId)
       .execute("insertNewANNONCE");
@@ -176,82 +192,88 @@ deleteAnnonceByIdSqlServer: async (id) => {
     }
   },
     
-updateAnnonceSqlServer: async (data) => {
-        const {
-          Id,
-          Numero,
-          Delai,
-          Journal,
-          Date_Overture,
-          Date_Publication,
-          Heure_Ouverture
-        } = data;
-    
-        try {
-          const pool = await poolPromise;
-    
-          let annonceId = Id;
-    
-          if (!annonceId && Numero) {
-            const lookup = await pool
-              .request()
-              .input("Numero", sql.VarChar(10), Numero)
-              .query("SELECT TOP 1 Id FROM dbo.ANNOUNCES WHERE Numero = @Numero");
-    
-            if (lookup.recordset.length) {
-              annonceId = lookup.recordset[0].Id;
-            }
-          }
-    
-          if (!annonceId) {
-            return {
-              success: false,
-              code: 1005,
-              message: "Annonce not found",
-            };
-          }
-    
-          const updateResult = await pool
-            .request()
-            .input("Id", sql.UniqueIdentifier, annonceId)
-            .input("Delai", sql.Int, Number.isFinite(+Delai) ? parseInt(Delai, 10) : null)
-            .input("Journal", sql.NVarChar(255), Journal)
-            .input("aHeure_Ouverture", sql.Time(7), toTimeOrNull(Heure_Ouverture))
-            .input("Date_Overture", sql.Date, toDateOrNull(Date_Overture))
-            .input("Date_Publication", sql.Date, toDateOrNull(Date_Publication))
-            .execute("dbo.updateAnnonce");
-    
-          const code = updateResult.returnValue;
-    
-          if (code === 0) {
-            return {
-              success: true,
-              code: 0,
-              message: "Annonce updated successfully",
-              id: annonceId,
-            };
-          }
-    
-          if (code === 1005) {
-            return {
-              success: false,
-              code: 1005,
-              message: "Annonce not found",
-            };
-          }
-          return {
-            success: false,
-            code: 5000,
-            message: "Failed to update annonce",
-          };
-        } catch (error) {
-          console.error("Annonce service error (updateAnnonceSqlServer):", error);
-          return {
-            success: false,
-            code: 5000,
-            message: "Database error occurred.",
-            error: error.message,
-          };
-        }
-      },
+  updateAnnonceSqlServer: async (data) => {
+    const {
+      Id,
+      Numero,
+      Delai,
+      Journal,
+      Date_Overture,
+      Date_Publication,
+      Heure_Ouverture
+    } = data;
+  
+    try {
+      console.log("Service updateAnnounce recieved :", data)
+      const pool = await poolPromise;
+  
+      const updateResult = await pool
+      .request()
+      .input("Id", sql.UniqueIdentifier, Id)
+      .input("Numero", sql.NVarChar(255), Numero) 
+      .input("Delai", sql.Int, Number.isFinite(+Delai) ? parseInt(Delai, 10) : null)
+      .input("Journal", sql.NVarChar(255), Journal)
+      .input("Heure_Ouverture", sql.VarChar, toTimeOrNull(Heure_Ouverture)) 
+      .input("Date_Overture", sql.Date, toDateOrNull(Date_Overture))
+      .input("Date_Publication", sql.Date, toDateOrNull(Date_Publication))
+      .execute("dbo.updateAnnonce");
+  
+      const code = updateResult.returnValue;
+  
+      if (code === 0) {
+        return {
+          success: true,
+          code: 0,
+          message: "Annonce updated successfully",
+          id: Id,
+        };
+      }
+  
+      if (code === 1005) {
+        return {
+          success: false,
+          code: 1005,
+          message: "Annonce not found",
+        };
+      }
+  
+      return {
+        success: false,
+        code: 5000,
+        message: "Failed to update annonce",
+      };
+    } catch (error) {
+      console.error("Annonce service error (updateAnnonceSqlServer):", error);
+      return {
+        success: false,
+        code: 5000,
+        message: "Database error occurred.",
+        error: error.message,
+      };
+    }
+  },
+  validateAnnounceService: async (annonceId)=>{
+    try {
+      const result = await validateAnnounce(annonceId);
+      if (result.success) {
+        return {
+          success: true,
+          message: "Annonce validée avec succès."
+        };
+      } else {
+        return {
+          success: false,
+          message: "Échec de la validation de l'annonce.",
+          error: result.error || undefined
+        };
+      }
+    } catch (error) {
+      console.error("Error in validateAnnounceService:", error);
+      return {
+        success: false,
+        message: "Une erreur de base de données s'est produite.",
+        error: error.message
+      };
+    }
+  }
 };

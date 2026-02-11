@@ -1,8 +1,21 @@
 const { MAX } = require('mssql');
 const {poolPromise, sql } = require('../../Config/dbSqlServer');
 
+const validateOperation = async (operationId) => {
+    try {
+        const pool = await poolPromise;
+        await pool.request()
+            .input('operationId', sql.UniqueIdentifier, operationId)
+            .query('UPDATE OPERATIONS SET State = 1 WHERE Id = @operationId');
+        return { success: true };
+    } catch (error) {
+        console.error('Error in validateOperation:', error);
+        return { success: false, error: error.message };
+    }
+};
+
 module.exports = {
-addOperationSQLServer: async (
+    addOperationSQLServer: async (
         NumOperation, ServContract, Objectif,
         TravalieType, BudgetType, MethodAttribuation,
         VisaNum, DateVisa,adminID
@@ -364,4 +377,28 @@ addOperationSQLServer: async (
             };
         }
     },
+    validateOperationSqlServer: async (operationId) => {
+        try {
+            const result = await validateOperation(operationId);
+            if (result.success) {
+                return {
+                    success: true,
+                    message: 'Opération validée avec succès.'
+                };
+            } else {
+                return {
+                    success: false,
+                    message: "Échec de la validation de l'opération.",
+                    error: result.error || undefined
+                };
+            }
+        } catch (error) {
+            console.error("Error in validateOperationSqlServer:", error);
+            return {
+                success: false,
+                message: "Une erreur de base de données s'est produite.",
+                error: error.message
+            };
+        }
+    }
 };

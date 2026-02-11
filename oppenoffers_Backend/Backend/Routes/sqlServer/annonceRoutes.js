@@ -6,5 +6,6 @@ router.post('/addAnnonce', annonceController.insertAnnonce);
 router.get('/AllAnnonces', annonceController.getAllAnnonces);
 router.delete('/deleteAnnonce/:id', annonceController.deleteAnnonce);
 router.put('/updateAnnonce', annonceController.updateAnnonce);
+router.patch('/validateAnnonce/:annonceId', annonceController.validateAnnonce);
 
 module.exports = router;

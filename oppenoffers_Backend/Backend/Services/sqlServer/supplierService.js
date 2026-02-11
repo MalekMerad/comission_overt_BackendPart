@@ -1,9 +1,11 @@
 const { poolPromise, sql } = require("../../Config/dbSqlServer");
 const {generateIDS} = require('../../Helper');
 
+
+// Function to insert potential supplier 
 const insertPotentialSupplier = async (
     aId,
-    aNomPrenom,
+    aNom,
     aAdresse,
     aTelephone,
     aEmail,
@@ -13,27 +15,28 @@ const insertPotentialSupplier = async (
         const pool = await poolPromise;
         await pool.request()
             .input("Id", sql.UniqueIdentifier, aId)
-            .input("NomPrenom", sql.NVARCHAR(100), aNomPrenom)
+            .input("Nom", sql.NVARCHAR(100), aNom)
             .input("Adresse", sql.NVARCHAR(100), aAdresse)
             .input("Telephone", sql.NVARCHAR(50), aTelephone)
             .input("Email", sql.NVARCHAR(100), aEmail)
             .input("Status", sql.Int, 1)
             .input("adminId", sql.UniqueIdentifier, aAdminID)
             .query(`INSERT INTO FOURNISSEURS 
-                (Id, NomPrenom, Adresse, Telephone, Email, Status, adminId)
-                VALUES (@Id, @NomPrenom, @Adresse, @Telephone, @Email, @Status, @adminId)`);
+                (Id, Nom, Adresse, Telephone, Email, Status, adminId)
+                VALUES (@Id, @Nom, @Adresse, @Telephone, @Email, @Status, @adminId)`);
     } catch (error) {
         console.error("insertPotentialSupplier error:", error);
         throw error;
     }
 };
+
+
 module.exports = {
     addSupplierSQL: async (data) => {
         try {
             const pool = await poolPromise;
             const result = await pool.request()
-                .input("aNomPrenom", sql.NVARCHAR(100), data.NomPrenom)
-                .input("aNomSociete", sql.NVARCHAR(50), data.NomSociete)
+                .input("aNom", sql.NVARCHAR(100), data.Nom)
                 .input("aNatureJuridique", sql.NVARCHAR(50), data.NatureJuridique)
                 .input("aAdresse", sql.NVARCHAR(50), data.Adresse)
                 .input("aTelephone", sql.NVARCHAR(50), data.Telephone)
@@ -125,8 +128,7 @@ module.exports = {
         try {
             const {
                 Id,
-                NomPrenom,
-                NomSociete,
+                Nom,
                 NatureJuridique,
                 Adresse,
                 Telephone,
@@ -137,8 +139,7 @@ module.exports = {
             const result = await pool
                 .request()
                 .input("aId", sql.UniqueIdentifier, Id)
-                .input("aNomPrenom", sql.NVARCHAR(100), NomPrenom) 
-                .input("aNomSociete", sql.NVARCHAR(50), NomSociete)
+                .input("aNom", sql.NVARCHAR(100), Nom) 
                 .input("aNatureJuridique", sql.NVARCHAR(50), NatureJuridique)
                 .input("aAdresse", sql.NVARCHAR(50), Adresse)
                 .input("aTelephone", sql.NVARCHAR(50), Telephone)
@@ -171,14 +172,14 @@ module.exports = {
     insertSelectedSupplier: async (data) => {
         try {
             const {
-                NomPrenom,
+                Nom,
                 Adresse,
                 Telephone,
                 Email,
                 adminID
             } = data;
             const id = generateIDS();
-            insertPotentialSupplier(id ,NomPrenom, Adresse, Telephone, Email, adminID);
+            insertPotentialSupplier(id ,Nom, Adresse, Telephone, Email, adminID);
             return { success: true };
         } catch (error) {
             if (error && (error.number === 1004 || error.number === 1005)) {
